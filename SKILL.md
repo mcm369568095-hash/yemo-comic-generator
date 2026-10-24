@@ -3,9 +3,9 @@ name: yemo-comic-generator
 displayName: 夜秣漫画生成器
 display_name: 夜秣漫画生成器
 display_name_en: Yemo Comic Generator
-description: 把小说章节转成传统漫画多格分镜页的完整生图提示词。内置 7 种基础页面骨架 + 68 种专业漫画分镜版式（凝练为 5 个节奏档位供用户选择），带跨格一致性锚定机制；v1.2 新增「角色双版模式」（正式版 + 独白Q版二头身 chibi 演绎内心戏）与「274 种手绘/IP 风格库」（#001–#274，A–H 八组，可任选画风）。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。
-description_zh: 把小说章节转成传统漫画多格分镜页的完整生图提示词。内置 7 种基础页面骨架 + 68 种专业漫画分镜版式（凝练为 5 个节奏档位供用户选择），带跨格一致性锚定机制；v1.2 新增「角色双版模式」（正式版 + 独白Q版二头身 chibi 演绎内心戏）与「274 种手绘/IP 风格库」（#001–#274，A–H 八组，可任选画风）。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。
-description_en: Turn novel chapters into complete image-generation prompts for traditional multi-panel comic pages. Includes 7 basic page skeletons + 68 professional comic panel layouts (condensed into 5 rhythm presets for users), with cross-panel consistency anchoring; v1.2 adds a "Dual Character Mode" (formal version + chibi Q-version for inner monologues) and a library of 274 hand-drawn/IP art styles (#001-#274, groups A-H) for one-command style switching. Triggers: comic generation, comic storyboard, panel prompts, novel-to-comic.
+description: "把小说章节转成传统漫画多格分镜页的完整生图提示词。内置 7 种基础页面骨架 + 68 种专业漫画分镜版式（凝练为 5 个节奏档位供用户选择），带跨格一致性锚定机制；v1.2 新增「角色双版模式」（正式版 + 独白Q版二头身 chibi 演绎内心戏）与「274 种手绘/IP 风格库」（#001–#274，A–H 八组，可任选画风）。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
+description_zh: "把小说章节转成传统漫画多格分镜页的完整生图提示词。内置 7 种基础页面骨架 + 68 种专业漫画分镜版式（凝练为 5 个节奏档位供用户选择），带跨格一致性锚定机制；v1.2 新增「角色双版模式」（正式版 + 独白Q版二头身 chibi 演绎内心戏）与「274 种手绘/IP 风格库」（#001–#274，A–H 八组，可任选画风）。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
+description_en: "Turn novel chapters into complete image-generation prompts for traditional multi-panel comic pages. Includes 7 basic page skeletons + 68 professional comic panel layouts (condensed into 5 rhythm presets for users), with cross-panel consistency anchoring; v1.2 adds the Dual Character Mode (formal version + chibi Q-version for inner monologues) and a library of 274 hand-drawn/IP art styles (#001-#274, groups A-H) for one-command style switching. Triggers: comic generation, comic storyboard, panel prompts, novel-to-comic."
 slug: yemo-comic-generator
 version: 1.2.0
 author: 夜秣
