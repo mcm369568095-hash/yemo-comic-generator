@@ -53,6 +53,8 @@ import os
 import sys
 import unicodedata
 
+from PIL import Image, ImageDraw, ImageFilter
+
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
@@ -224,6 +226,106 @@ def star_polygon(cx, cy, w, h, spikes=12, inner=0.78):
 
 
 # ---------------------------------------------------------------- 绘制
+
+def cover_shape_polygon(box, style, pad):
+    """按气泡形状生成覆盖块的外形（比气泡外扩 pad）。"""
+    x, y, w, h = box
+    x, y, w, h = x - pad, y - pad, w + pad * 2, h + pad * 2
+    if style in ("oval", "thought"):
+        return ("ellipse", (x, y, x + w, y + h))
+    if style == "shout":
+        return ("polygon", star_polygon(x + w / 2.0, y + h / 2.0, w, h))
+    if style == "caption":
+        return ("rect", (x, y, x + w, y + h))
+    radius = min(int(h / 2.2), 34) + pad // 2
+    return ("rrect", (x, y, x + w, y + h, radius))
+
+
+def ring_median_color(canvas, geo, kind, pad=10, thick=26):
+    """取覆盖块外一圈环带的中位色，让补丁颜色贴近周围背景。"""
+    x0, y0, x1, y1 = geo[:4]
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+    px = canvas.load()
+    w, h = canvas.size
+    samples = []
+    import random
+    rnd = random.Random(7)
+    for _ in range(2200):
+        ang = rnd.uniform(0, math.tau)
+        r = rnd.uniform(0.5, 0.62) + rnd.uniform(0, 1) * 0.0
+        # 在椭圆/矩形外环采样
+        if kind == "ellipse":
+            ax = (x1 - x0) / 2.0 + pad + thick * rnd.random()
+            ay = (y1 - y0) / 2.0 + pad + thick * rnd.random()
+            sx, sy = cx + math.cos(ang) * ax, cy + math.sin(ang) * ay
+        else:
+            bx, by = (x1 - x0) / 2.0 + pad, (y1 - y0) / 2.0 + pad
+            sx = cx + math.cos(ang) * (bx + thick * rnd.random())
+            sy = cy + math.sin(ang) * (by + thick * rnd.random())
+        ix, iy = int(sx), int(sy)
+        if 0 <= ix < w and 0 <= iy < h:
+            samples.append(px[ix, iy])
+    if not samples:
+        return None
+    rs = sorted(c[0] for c in samples)
+    gs = sorted(c[1] for c in samples)
+    bs = sorted(c[2] for c in samples)
+    mid = len(samples) // 2
+    return (rs[mid], gs[mid], bs[mid])
+
+
+def apply_cover(canvas, bubble, box, style, paper="white"):
+    """
+    模式 B 专用：先在原气泡位置盖一块羽化底，把模型画错的字吃掉。
+    cover 支持：
+      true                                  → 按新气泡外扩 pad
+      {"pad":18, "blur":7}                  → 按新气泡外扩 pad
+      {"box":[x,y,w,h], "shape":"oval"}     → 显式指定要盖掉的矩形（原气泡含尾巴的范围）
+      {"color":"auto"}                      → 取外圈中位色，让补丁贴近背景
+    返回实际覆盖框 [x,y,w,h]，供报告用。
+    """
+    spec = bubble.get("cover")
+    if not spec:
+        return None
+    if spec is True:
+        spec = {}
+    if not isinstance(spec, dict):
+        spec = {}
+    pad = int(spec.get("pad", 14))
+    blur = float(spec.get("blur", 6))
+    shape = spec.get("shape", style)
+    color = spec.get("color", paper)
+
+    rect = spec.get("box")
+    if rect:
+        bx, by, bw, bh = [int(v) for v in rect]
+        shape_for_mask = shape
+        kind, geo = cover_shape_polygon([bx, by, bw, bh], shape_for_mask, 0)
+        area = [bx, by, bw, bh]
+    else:
+        kind, geo = cover_shape_polygon(box, style, pad)
+        area = [int(box[0]) - pad, int(box[1]) - pad, int(box[2]) + pad * 2, int(box[3]) + pad * 2]
+
+    if color == "auto":
+        picked = ring_median_color(canvas, geo, kind)
+        color = picked if picked else paper
+
+    mask = Image.new("L", canvas.size, 0)
+    md = ImageDraw.Draw(mask)
+    if kind == "ellipse":
+        md.ellipse(geo, fill=255)
+    elif kind == "polygon":
+        md.polygon(geo, fill=255)
+    elif kind == "rect":
+        md.rectangle(geo, fill=255)
+    else:
+        md.rounded_rectangle(geo[:4], radius=geo[4], fill=255)
+    if blur and blur > 0:
+        mask = mask.filter(ImageFilter.GaussianBlur(blur))
+    patch = Image.new("RGB", canvas.size, color)
+    canvas.paste(patch, (0, 0), mask)
+    return {"box": area, "color": tuple(color) if isinstance(color, tuple) else color, "blur": blur}
+
 
 def draw_bubble(draw, bubble, font, lines, line_h, box, style, ink="black", paper="white", width=3):
     x, y, w, h = box
@@ -476,6 +578,11 @@ def process(page_path, spec_path, out_path, auto_layout=False, ink="black", pape
 
     # 落笔
     canvas = page.copy()
+    # 第一轮：模式 B 的覆盖块（先把模型画错的字吃掉，再画新气泡）
+    covered = 0
+    for b in bubbles:
+        if apply_cover(canvas, b, b["_box"], b.get("style", "round"), paper=paper):
+            covered += 1
     draw = ImageDraw.Draw(canvas)
     for b in bubbles:
         draw_bubble(draw, b, b["_font"], b["_lines"], b["_lh"], b["_box"],
@@ -502,6 +609,7 @@ def process(page_path, spec_path, out_path, auto_layout=False, ink="black", pape
             }
             for i, b in enumerate(bubbles)
         ],
+        "covered": covered,
         "warnings": warnings,
         "ok": not warnings,
     }

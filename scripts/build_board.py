@@ -18,7 +18,7 @@ python build_board.py --out 对照台.html
 数据格式（chapter.json）
 -----------------------
 {
-  "title": "你的公式我的画",
+  "title": "我的漫画",
   "chapter": "第 1 章",
   "style": "日系厚涂 + 清晰勾线",
   "pages": [

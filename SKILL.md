@@ -3,11 +3,11 @@ name: yemo-comic-generator
 displayName: 夜秣漫画生成器
 display_name: 夜秣漫画生成器
 display_name_en: Yemo Comic Generator
-description: "把小说章节转成传统漫画多格分镜页的一站式工具：7 种页面骨架 + 68 种专业分镜版式（凝练为 5 个节奏档位）+ 274 种手绘/IP 画风库 + 角色双版（正式版与独白Q版）。v2.0 新增图字分离成品工线（生图不带字，中文气泡由脚本组版，零错字）、左右对照看板（左边提示词右边成图）、动作三时态预检与八项质检卡。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
-description_zh: "把小说章节转成传统漫画多格分镜页的一站式工具：7 种页面骨架 + 68 种专业分镜版式（凝练为 5 个节奏档位）+ 274 种手绘/IP 画风库 + 角色双版（正式版与独白Q版）。v2.0 新增图字分离成品工线（生图不带字，中文气泡由脚本组版，零错字）、左右对照看板（左边提示词右边成图）、动作三时态预检与八项质检卡。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
-description_en: "Turn novel chapters into multi-panel comic pages: 7 page skeletons + 68 professional panel layouts (condensed into 5 rhythm presets) + a 274-style art library + dual character mode (formal + chibi monologue). v2.0 adds a text/art separation pipeline (generate art with no lettering, composite Chinese balloons via script — zero typos), a side-by-side prompt/result board, a three-tense action preflight and an 8-item QC card. Triggers: comic generation, comic storyboard, panel prompts, novel-to-comic."
+description: "把小说章节转成传统漫画多格分镜页的一站式工具：7 种页面骨架 + 68 种专业分镜版式（凝练为 5 个节奏档位）+ 274 种手绘/IP 画风库 + 角色双版（正式版与独白Q版）。v2.1 新增「文字三模式」可选开关（全交模型 / 模型先出·错字白底覆盖改 / 全后加零错字），并保留图字分离成品工线、左右对照看板、动作三时态预检与八项质检卡。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
+description_zh: "把小说章节转成传统漫画多格分镜页的一站式工具：7 种页面骨架 + 68 种专业分镜版式（凝练为 5 个节奏档位）+ 274 种手绘/IP 画风库 + 角色双版（正式版与独白Q版）。v2.1 新增「文字三模式」可选开关（全交模型 / 模型先出·错字白底覆盖改 / 全后加零错字），并保留图字分离成品工线、左右对照看板、动作三时态预检与八项质检卡。当用户说夜秣漫画、漫画生成、漫画分镜、分镜提示词、小说转漫画、条漫分镜时使用。"
+description_en: "Turn novel chapters into multi-panel comic pages: 7 page skeletons + 68 professional panel layouts (condensed into 5 rhythm presets) + a 274-style art library + dual character mode (formal + chibi monologue). v2.1 adds a three-way lettering mode switch (model draws text / model-first then patch typos with white cover / script-only zero-typo compositing), plus a side-by-side prompt/result board, a three-tense action preflight and an 8-item QC card. Triggers: comic generation, comic storyboard, panel prompts, novel-to-comic."
 slug: yemo-comic-generator
-version: 2.0.0
+version: 2.1.0
 author: 夜秣
 ---
 
@@ -17,21 +17,35 @@ author: 夜秣
 
 三条主线：**版式决定怎么切，锚定决定像不像，读序决定读不读得下去。**
 
+第四条：**字交给谁写，你自己定**——模型直接画字、画错了覆盖改、还是全由脚本叠。见第五节。
+
 ---
 
 ## 一、三十秒上手
 
 ### 你要提示词
 ```
-@夜秣漫画生成器 把《你的公式我的画》第3章做成漫画分镜
+@夜秣漫画生成器 把《夏至未央》第3章做成漫画分镜
 ```
 → 输出每页的骨架、版式、分格描述、整页生图提示词。复制即用。
 
-### 你要成品
+### 你要成品，而且字必须准
 ```
 @夜秣漫画生成器 第3章做成成品页，字要准
 ```
-→ 走**图字分离**：先出干净画面，再用脚本把中文气泡叠上去。零错字，改台词不用重画。
+→ 走**文字模式 C · 全后加**：先出干净画面，再用脚本把中文气泡叠上去。零错字，改台词不用重画。
+
+### 你要模型自己把字画进去
+```
+@夜秣漫画生成器 第3章做成成品页，字让模型画
+```
+→ 走**文字模式 A · 全交模型**：中文字直接写进生图提示词，画面自带气泡。最像手工漫画，但会出形近字。
+
+### 你要模型画字但怕出错
+```
+@夜秣漫画生成器 第3章出成品，字让模型画，错了就改
+```
+→ 走**文字模式 B · 先出后改**：模型画字，逐字核对，错的那格用白底覆盖块盖掉再叠正确中文。
 
 ### 你要看对照
 ```
@@ -56,20 +70,29 @@ author: 夜秣
 4. 情绪 —— 超窄反应格 / 眼神链 / 骤停，适合心理戏
 5. 花样 —— 闪回嵌套 / 手机聊天式 / 无边框，适合回忆与章节点睛
 
-回复数字即可，不回默认 1。
+字怎么上？
+
+A. 全交模型 —— 字写进生图提示词，画面自带气泡，最像手工漫画（会出形近字）
+B. 先出后改 —— 模型画字，逐字核对，错的那格白底覆盖再叠正确字（推荐）
+C. 全后加 —— 画面一个字不画，中文全由脚本叠，零错字，改台词不重画
+
+回复如「4C」「A」即可。不回默认 1B。
 ```
 
 **什么时候连问都不用问：**
 
 | 用户这句话里已经包含 | 直接开工 |
 |---|---|
-| 「随便」「你看着办」「按你判断」 | 走 1 自动编排 |
+| 「随便」「你看着办」「按你判断」 | 走 1 自动编排 + B 先出后改 |
 | 「燃一点」「打起来」 | 走 3 |
 | 「情绪戏」「心理」「暧昧」 | 走 4 |
 | 「回忆」「聊天记录」 | 走 5 |
-| 已经在做同一本的第 2 章以后 | 沿用上一章档位 |
+| 「字让模型画」「不要后加」 | 走 A |
+| 「字要准」「不能有错字」「全后加」 | 走 C |
+| 已经在做同一本的第 2 章以后 | 沿用上一章档位**和**上次的文字模式 |
 
-> **接续作业的规矩**：同一本书从第二章起不再重复问，沿用上次的档位与画风。用户要换会自己说。
+> **接续作业的规矩**：同一本书从第二章起不再重复问，沿用上次的档位、画风与文字模式。用户要换会自己说。
+> **唯一例外**：上一章用 C（全后加），这一章用户说「让模型试试」→ 说明在压测，照 A 走，但结尾要报错字率。
 
 ---
 
@@ -82,6 +105,7 @@ author: 夜秣
 | 角色不像 / 脸漂 / 手崩 / 道具瞬移 | `references/一致性硬档.md` |
 | 读者读乱 / 气泡压脸 / 跳读 | `references/读序与气泡规则.md` |
 | 出图后自查、判定能不能交付 | `references/八项质检卡.md` |
+| 要选字怎么上（模型画/先出后改/全后加） | `references/文字三模式.md` |
 | 要成品、要中文零错字 | `references/图字分离工作流.md` |
 | 要对照看板 / 组版脚本 | `scripts/build_board.py`、`scripts/lettering.py` |
 
@@ -89,29 +113,102 @@ author: 夜秣
 
 ---
 
-## 四、两种交付模式
+## 四、交付形态（跟文字模式是两个轴，别混）
 
-| | 模式 A · 提示词 | 模式 B · 成品页 |
+| | 形态① 只出提示词 | 形态② 出成品页 |
 |---|---|---|
-| 一句话 | 我给你 prompt，你去生图 | 我出干净画面，字由我叠 |
-| 字 | 可能错 | **零错字** |
-| 改台词 | 要重画 | 秒级重排 |
-| 适合 | 试风格、出量、给客户看构图 | 要交付、要连载、对话密集页 |
-| 用到的文件 | 版式库 + 画风库 | 以上 + 图字分离 + 脚本 |
+| 一句话 | 我给 prompt，你去生图 | 我出画面 + 上字 + 看板 |
+| 我给什么 | 每页骨架/版式/分格/英文提示词 | 以上 + 干净页图 + 气泡表 + 成品 PNG + 对照看板 |
+| 适合 | 试风格、出量、给客户看构图 | 要交付、要连载 |
 
-**默认策略：先出模式 A 的提示词（用户能立刻看到东西），再问一句「要不要出成品页」。**
+**默认策略：先出形态①（用户能立刻看到东西），再问一句「要不要出成品页」。**
 
-模式 B 的核心就两句：
-
-```
-生图时写死：No text, no speech bubbles, no lettering, no borders.
-只留一块白色禁区给气泡。
-然后：python scripts/lettering.py --page 图.png --spec 气泡.json --out 成品.png
-```
+形态② 的具体做法取决于**文字模式**（A/B/C），见第五节。
 
 ---
 
-## 五、版式：两层结构
+## 五、文字三模式（v2.1 新增 · 用户自选）
+
+同一个画面，字有三种上法。**开工时问清楚，别默认。**
+
+| | A · 全交模型 | B · 先出后改 | C · 全后加 |
+|---|---|---|---|
+| 字从哪来 | 写进生图提示词 | 模型先画，错了覆盖 | 脚本叠加 |
+| 画面 | 自带气泡，最像手工漫画 | 自带气泡 + 局部白块补丁 | 一个字都没有（禁字令） |
+| 错字风险 | **高**（形近字、缺笔、串字） | 中（错的才改，改过的地方有补丁感） | **零** |
+| 改台词成本 | 重画整页 | 重画整页，或补丁叠新字 | 秒级重排 |
+| 气泡位置 | 模型决定，常压脸挡关键物 | 模型决定，可用补丁挪 | 脚本算，可校验避让 |
+| 出图次数 | 1 次（错就 2~4 次） | 1 次 + 局部补丁 | 1 次 |
+| 适合 | 短句多、拟声词多、要手感 | 长章节批量出、能接受补丁 | 要交付、要连载、对话密集 |
+
+### 模式 A · 全交模型
+
+提示词里**不能写禁字令**，改成明确的字画指令：
+
+```
+Chinese speech balloons are part of the artwork. Draw each balloon as a clean white
+rounded shape with a thin black outline and a tail pointing at the speaker's mouth.
+Write the Chinese dialogue EXACTLY as given below, in a legible hand-lettered
+Chinese font, horizontal, left-to-right, one line per phrase:
+  panel 1: 苏念一「哎，你也是这个班的？」
+  panel 2: 陈序之「嗯。」
+Do not add any other text anywhere in the page. No watermarks, no signatures,
+no page numbers, no speech labels other than the listed dialogue.
+```
+
+**三条铁律：**
+
+1. **一句话一气泡，短句优先。** 超过 12 字的台词在模型手里必然断错字，宁拆成两个气泡。
+2. **台词表要和分格描述编号对齐**（`panel 1` / `panel 2`），否则模型会把台词塞错格。
+3. **出图后必须逐字核对，不许目测过关。** 中文错字最常见的是：形近字（姝/妹、己/已）、缺笔画、串行、把标点画成奇怪符号。
+
+**错字判定：一句话里只要有一个字不对，这一格就不合格。** 修法见 `references/文字三模式.md`。
+
+### 模式 B · 先出后改
+
+模型照 A 的方式画字 → 逐字核对 → **只改错的那几格**：
+
+```
+python scripts/lettering.py --page 图.png --spec 补丁.json --out 改好.png
+```
+
+补丁 JSON 里给气泡加 `cover`，脚本会先在原气泡位置盖一块羽化的白底（把模型的错字吃掉），再叠正确中文：
+
+```json
+{"bubbles": [{
+  "text": "哎，你也是这个班的？", "style": "round",
+  "x": 120, "y": 80, "cover": {"pad": 16, "blur": 6},
+  "tail": {"to": [330, 420]}
+}]}
+```
+
+`cover` 参数：`pad`（外扩像素，默认 14）、`blur`（羽化半径，默认 6，0 表示硬边）、`color`（默认纸白）。
+
+> **补丁的诚实边界**：白块落在原气泡的白底上时几乎看不出来；一旦原气泡比白块小、白块压到背景画面，就会出现一块「贴纸」。所以模式 B 只适合**画错的字在气泡内部**的情况。如果模型把气泡画在人物脸上，别打补丁，重画。
+
+### 模式 C · 全后加
+
+提示词里写死禁字令：
+
+```
+Absolutely no text in the artwork: no letters, no writing, no Chinese characters,
+no speech balloons, no captions, no sound effects, no watermark, no signature.
+Leave a clean low-detail area where balloons can be placed later.
+```
+
+然后走 `references/图字分离工作流.md` 的完整流程。
+
+### 怎么选（一句话）
+
+- **要手感和拟声词** → A
+- **批量出长篇、错一点能忍** → B
+- **要交付、要改台词、要连载** → C
+
+> 实测参考：274 画风里，水墨、涂鸦、粗线这几种对字的容忍度最低，强烈建议 C；赛璐璐、扁平矢量勉强能跑 A，但长句必错。
+
+---
+
+## 六、版式：两层结构
 
 先定骨架（几格、大块怎么分），再定版式（格子怎么切、视线怎么走）。**两层都要写进提示词。**
 
@@ -181,7 +278,7 @@ author: 夜秣
 
 ---
 
-## 六、一致性：先立锚，再动笔
+## 七、一致性：先立锚，再动笔
 
 > 详细做法见 `references/一致性硬档.md`。这里只给必须记住的骨架。
 
@@ -243,7 +340,7 @@ Image 3: support.  只取点名的那条场景特征，不继承人物与构图
 
 ---
 
-## 七、角色双版：正式版 + 独白Q版
+## 八、角色双版：正式版 + 独白Q版
 
 每个主要角色有两套演绎形态，按场景自动切：
 
@@ -273,9 +370,31 @@ simple flat colors, cute deformed style, white or transparent background
 
 > Q 版属于情绪外化手段，优先放在 C 情绪族与 E 花样族页面；纯动作页（B 燃）一般不用。
 
+### 文字模式 A 下怎么加 Q 版（实测最稳的写法）
+
+模式 A 里画面自带中文，这时候 Q 版**不能再单独多画一格**——多一格就多一个气泡位置，模型会把台词塞错。正确做法是**塞进已有格子的空白角**：
+
+```
+Also draw a small super-deformed chibi inset of {角色} floating in the
+{lower-right} corner of this same panel: three heads tall, oversized head,
+tiny body, same {低髻+空气刘海}, {空白发愣的脸，头上升起三个大问号，太阳穴一滴汗},
+no border, no background, about one fifth of the panel width.
+```
+
+四条要点：
+
+1. **必须写 `no border, no background`** —— 否则模型会给 Q 版加个边框，变成一个小分格
+2. **必须写 `about one fifth of the panel width`** —— 不给比例会画成半个格子那么大，抢戏
+3. **必须写清 `same 发型`** —— Q 版最容易变成"另一个人"
+4. **Q 版不配气泡** —— 它只演表情，话由正式版角色说；给 Q 版配气泡会让读者搞不清谁在说话
+
+**位置选择**：哪一角的背景最空就放哪。人物偏左就放右下，人物居中就放左下。放在人脸正下方会显得贴脸，放在格的顶端会被裁切。
+
+**修一次就够**：Q 版画歪了（比如被格边裁掉半个身子），直接接受或换一角重出，不要去描细节——它是情绪标点，不是主角。
+
 ---
 
-## 八、画风库：274 种任选
+## 九、画风库：274 种任选
 
 完整清单在 `references/画风风格库.md`（编号 001–274，A–H 八组）。
 
@@ -298,7 +417,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 九、输出格式（每一页按这个结构）
+## 十、输出格式（每一页按这个结构）
 
 ```markdown
 ---
@@ -349,9 +468,37 @@ simple flat colors, cute deformed style, white or transparent background
 | 「出成品」 | 加气泡表 + 组版脚本 + 质检 |
 | 「要对照看板」 | 加 `build_board.py` 生成的 HTML |
 
+### 章末「下期预告」页
+
+一章画完，可以再加一页预告，把读者推到下一章。它不属于正文，**别写进叙事节奏里**。
+
+**画面**：一张无人或只有背影的气氛图，主体是"下一章要发生的那件事的物证"——不是人物摆拍。
+上三分之一留干净空间给标题，下三分之一留给文案卡。
+
+| 本章 | 预告页画什么 |
+|---|---|
+| 校园初遇 | 空教室，两排桌子并排，一整齐一歪着，贴着贴纸的平板放在桌上 |
+| 公共课同桌 | 食堂打饭窗口，两个餐盘并排：一份白饭水煮青菜白鸡胸，一份鸡腿红烧肉茄子 |
+
+**文字**：标题 + 副标题 + 三行文案，全部由脚本叠，**不交给模型**。原因是简介是长句散文，模型必错，而且改一次要重出一整页。
+
+```bash
+python scripts/make_preview.py --page art/P17.png --out final/P17.png \
+  --title 下期预告 --sub "第 3 章 · 食堂里的卡路里战争" \
+  --lines "十二点零五分，他端着五百卡的午餐。|她夹过来一块鸡腿。|「你的人生不需要每一口都按公式来。」"
+```
+
+**三行文案的写法**（照这个结构，别写成剧情简介）：
+
+1. 第一行给**时间 + 一个具体数字或动作**
+2. 第二行给**一个反常的小动作**
+3. 第三行给**一句原话**，用「」包起来，是这一章的核心台词
+
+> 预告页的作用不是交代剧情，是让读者想知道"然后呢"。所以第三行永远放那句话，不要放"敬请期待"。
+
 ---
 
-## 十、生成流程（十步）
+## 十一、生成流程（十步）
 
 ```
 1  问节奏        一次问完，不做二次追问
@@ -370,7 +517,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 十一、质检与读序：两个必须过的关
+## 十二、质检与读序：两个必须过的关
 
 ### 读序（详细见 `references/读序与气泡规则.md`）
 
@@ -404,7 +551,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 十二、脚本速查
+## 十三、脚本速查
 
 | 脚本 | 干什么 | 命令 |
 |---|---|---|
@@ -412,6 +559,8 @@ simple flat colors, cute deformed style, white or transparent background
 | 同上，自动找位 | 没给坐标时自动算气泡位置 | 加 `--auto-layout` |
 | `scripts/build_board.py` | 生成左右对照看板 | `python scripts/build_board.py --data 章节.json --out 对照台.html` |
 | 同上，空壳 | 先要个模板手动填 | `python scripts/build_board.py --out 对照台.html` |
+| `scripts/make_preview.py` | 章末「下期预告」页排版 | `python scripts/make_preview.py --page 图.png --out 成品.png --title 下期预告 --sub "第 3 章 · 标题" --lines "句子1\|句子2\|句子3"` |
+| 同上，卡放上部 | 正文压在画面上方 | 加 `--pos top`；`--no-rule` 去掉标题下的分隔线 |
 
 **依赖**：Python 3 + Pillow（`pip install pillow`）。字体默认找微软雅黑，找不到会提示。
 
@@ -425,7 +574,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 十三、注意事项
+## 十四、注意事项
 
 1. **一致性优先** —— 任何格子都不能违反锚定清单
 2. **脸比衣服重要** —— 衣服变了读者能接受，脸变了就崩
@@ -440,7 +589,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 十四、诚实的边界
+## 十五、诚实的边界
 
 这个技能能保证的：
 
@@ -461,7 +610,7 @@ simple flat colors, cute deformed style, white or transparent background
 
 ---
 
-## 十五、技能特点
+## 十六、技能特点
 
 - 双层版式：7 骨架 + 68 专业版式（SB-001~068）
 - 68 种凝练为 5 个节奏档位，用户只做 5 选 1

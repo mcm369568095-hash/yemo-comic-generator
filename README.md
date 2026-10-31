@@ -2,7 +2,7 @@
 
 > 把小说章节，一键转成传统漫画多格分镜页 —— 从提示词到成品页，全流程。
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue) ![Platform](https://img.shields.io/badge/平台-WorkBuddy-purple) ![Store](https://img.shields.io/badge/SkillHub-已上架-green) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-2.1.0-blue) ![Platform](https://img.shields.io/badge/平台-WorkBuddy-purple) ![Store](https://img.shields.io/badge/SkillHub-已上架-green) ![License](https://img.shields.io/badge/license-MIT-green)
 ![微信搜一搜 · 夜秣AI搞钱](assets/wechat-search.jpg)
 
 **夜秣漫画生成器**是一个跑在 [WorkBuddy](https://www.workbuddy.cn) 里的 AI 漫画生产技能。丢给它一段小说章节，它产出**一整页传统漫画分镜**——每一页是一张完整漫画图，内含 2~5 个分格，整体构图、色调、光影、画风高度统一。
@@ -34,6 +34,70 @@ v2.0 起有两条交付路线：
 | 提示词和成图对不上，改完不知道改哪 | **左右对照看板（v2.0）**：单文件 HTML，左边提示词右边成图，翻页对照，双击换图 |
 
 > 一句话：**不是帮你"写一条提示词"，而是替你把整本小说"漫画化"。**
+
+---
+
+## 🆕 v2.1：字交给谁写，你自己定
+
+v2.0 只有一条路——字全由脚本后加。但那样少了点手工感，也有人就是想让模型直接把字画进画面。
+
+v2.1 把它做成**三选一开关**，开工时一次问清：
+
+| | A · 全交模型 | B · 先出后改 | C · 全后加 |
+|---|---|---|---|
+| 字从哪来 | 写进生图提示词 | 模型先画，错了覆盖 | 脚本叠加 |
+| 画面自带气泡 | 是 | 是（局部有补丁） | 否（禁字令） |
+| 错字风险 | 高 | 中 | **零** |
+| 改一句台词 | 重画整页 | 重画整页 / 补丁叠字 | 秒级重排 |
+| 适合 | 短句多、要手感 | 批量长篇 | 交付、连载 |
+
+### 实测：12 字以内的短句，模型写得比想象中准
+
+拿 16 页 25 句真跑了一遍模式 A：
+
+| 指标 | 结果 |
+|---|---|
+| 逐字全对 | 24 / 25 句 |
+| 字准确率 | **96%** |
+| 唯一错误 | 漏字，不是形近字（「送你箱子的人，是我室友」少了「人」） |
+| 首轮返工 | 6 / 16 页 |
+
+**结论一：核对时数一遍字数，比逐个查笔画有用。** 模型不会把「姝」画成「妹」，但会吞掉一个虚词。
+
+**结论二：模式 A 真正的短板不是字，是场景。** 6 页返工里 5 页是背景漂了——教室画成图书馆、室内画成户外、插画画成照片。因为提示词里塞满台词和气泡位置，模型注意力被吸到「画人 + 写字」上。
+
+解法是每页单列两段锁：
+
+```
+SETTING — the whole chapter takes place inside ONE tiered university lecture hall:
+stepped rows of wooden desks, tall windows on the right, a projector screen at the
+front, plain white walls. It is NEVER a library, NEVER bookshelves, NEVER outdoors.
+The same room must look identical on every page.
+
+RENDER: identical painterly anime illustration style as every other page — soft cel
+shading with visible painterly brushwork, crisp clean line art. NOT a photograph.
+NOT a 3D render. NOT photorealistic.
+```
+
+加上这两段后，重出的 6 页全部归位。
+
+### 模式 B 的补丁长什么样
+
+模型把字画错了，不想重画整页——盖一块羽化白底，再叠正确的中文：
+
+```json
+{"text": "哎，你也是这个班的？", "style": "round", "x": 92, "y": 108, "w": 386, "h": 160,
+ "cover": {"box": [70, 70, 420, 350], "shape": "oval", "color": "auto", "blur": 6}}
+```
+
+`cover.box` 是要盖掉的原气泡范围（含尾巴根部），`color: "auto"` 会取外圈中位色让补丁贴近背景。
+
+**判断标准：框的边缘要落在纯背景上，不能落在原气泡的黑边上。** 落在黑边上会残留一道淡弧，一眼就看出这里补过。
+
+### 还有两件小事
+
+- **章末「下期预告」页**：新增 `scripts/make_preview.py`，一条命令出「标题 + 副标题 + 三行文案卡」。文案永远由脚本叠——简介是长句散文，交给模型必错，改一次要重出一整页。
+- **Q 版在模式 A 下的写法**：不能再单独多画一格（多一格就多一个气泡位，台词会塞错），要把它塞进已有格子的空白角，并写死 `no border, no background` + `about one fifth of the panel width`。
 
 ---
 
@@ -639,10 +703,12 @@ yemo-comic-generator/
 │   ├── 一致性硬档.md         # 脸三特征 / 参考图角色声明 / 动作三时态 / 场次分层
 │   ├── 读序与气泡规则.md     # 两段式盲读 / 11 条核对面 / 气泡五条硬规则 / 跳读检测
 │   ├── 八项质检卡.md         # 八个维度 / 三个倍率 / pass-fail-na 规则 / 修正顺序
+│   ├── 文字三模式.md         # 模型画字 / 先出后改 / 全后加 + 实测数据与双锁解法
 │   └── 图字分离工作流.md     # 出干净画面 → 写气泡表 → 脚本组版 → 看报告
 ├── scripts/
-│   ├── lettering.py          # 文字组版引擎（Pillow，中文换行/避头尾/气泡/尾巴/校验）
-│   └── build_board.py        # 对照看板生成器（单文件 HTML，左提示词右成图）
+│   ├── lettering.py          # 文字组版引擎（中文换行/避头尾/气泡/尾巴/校验/羽化补丁）
+│   ├── build_board.py        # 对照看板生成器（单文件 HTML，左提示词右成图）
+│   └── make_preview.py       # 章末「下期预告」页排版（标题 + 副标题 + 文案卡）
 ├── templates/
 │   └── 对比看板.html         # 看板模板（零依赖，可打印）
 ├── assets/
