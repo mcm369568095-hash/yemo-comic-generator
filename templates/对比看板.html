@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ · 分镜对照台</title>
+<style>
+:root{
+  --ink:#16243F; --ink-soft:#3E4E6E; --gold:#E6B45C; --gold-deep:#C8912F;
+  --paper:#F4EDDD; --paper-2:#FBF7EE; --line:#DED3BC; --muted:#8B8272; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:"Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+}
+header{
+  background:var(--ink);color:var(--paper);padding:12px 20px;
+  display:flex;align-items:center;gap:16px;flex-shrink:0;
+}
+header h1{font-size:15px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sub{font-size:12px;color:var(--gold);white-space:nowrap}
+header .spacer{flex:1}
+header button{
+  background:transparent;border:1px solid rgba(230,180,92,.45);color:var(--gold);
+  padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;
+  transition:background .15s,border-color .15s;
+}
+header button:hover{background:rgba(230,180,92,.14);border-color:var(--gold)}
+header button:disabled{opacity:.35;cursor:not-allowed}
+.pager{display:flex;align-items:center;gap:10px;font-size:13px;font-variant-numeric:tabular-nums}
+.pager b{color:var(--gold);font-weight:600}
+
+main{flex:1;display:flex;min-height:0}
+.pane{min-width:0;display:flex;flex-direction:column}
+.left{width:44%;border-right:1px solid var(--line);background:var(--paper-2)}
+.right{width:56%;background:#EFE8D8}
+.pane-head{
+  padding:10px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;
+  font-size:12px;letter-spacing:.08em;color:var(--muted);flex-shrink:0;background:rgba(255,255,255,.5)
+}
+.pane-head .tag{background:var(--ink);color:var(--paper);padding:2px 8px;border-radius:4px;font-size:11px;letter-spacing:.06em}
+.scroll{overflow-y:auto;padding:18px;flex:1;min-height:0}
+.scroll::-webkit-scrollbar{width:9px}
+.scroll::-webkit-scrollbar-thumb{background:#CFC4AE;border-radius:5px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+
+.block{margin-bottom:16px}
+.block h3{
+  font-size:11px;color:var(--gold-deep);letter-spacing:.12em;margin-bottom:7px;
+  font-weight:600;display:flex;align-items:center;gap:8px;
+}
+.block h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.kv{font-size:13px;line-height:1.75;color:var(--ink)}
+.kv .k{color:var(--muted);margin-right:6px}
+ul.anchor{list-style:none;font-size:13px;line-height:1.85}
+ul.anchor li{padding-left:14px;position:relative}
+ul.anchor li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;background:var(--gold);border-radius:50%}
+
+.panelcard{
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:9px;background:var(--white);
+}
+.panelcard .ph{font-size:12px;color:var(--gold-deep);font-weight:600;margin-bottom:5px;display:flex;gap:8px;align-items:center}
+.panelcard .ph .shot{background:var(--paper);color:var(--ink);font-weight:400;padding:1px 7px;border-radius:4px;font-size:11px}
+.panelcard .pb{font-size:13px;line-height:1.7}
+.panelcard .pe{font-size:12px;color:var(--muted);margin-top:4px}
+
+.promptbox{position:relative;background:var(--ink);border-radius:8px;padding:14px 14px 12px}
+.promptbox pre{
+  font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:11.5px;line-height:1.72;
+  color:#DDE5F2;white-space:pre-wrap;word-break:break-word;
+}
+.promptbox .copy{
+  position:absolute;top:8px;right:8px;background:rgba(230,180,92,.16);border:1px solid rgba(230,180,92,.4);
+  color:var(--gold);font-size:11px;padding:3px 9px;border-radius:5px;cursor:pointer;font-family:inherit;
+}
+.promptbox .copy:hover{background:rgba(230,180,92,.3)}
+.promptbox .copy.done{background:var(--gold);color:var(--ink)}
+.sub-prompt{border-top:1px solid rgba(230,180,92,.22);margin-top:11px;padding-top:9px}
+.sub-prompt .sl{font-size:10.5px;color:var(--gold);letter-spacing:.08em;margin-bottom:4px}
+
+.stage{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:22px;min-height:0;position:relative;
+}
+.stage img{max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 2px 18px rgba(22,36,63,.16);border-radius:2px}
+.dropzone{
+  width:100%;height:100%;border:2px dashed #C9BCA0;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  color:var(--muted);font-size:13px;text-align:center;padding:30px;cursor:pointer;transition:all .18s;
+}
+.dropzone:hover,.dropzone.over{border-color:var(--gold-deep);background:rgba(230,180,92,.09);color:var(--ink)}
+.dropzone .big{font-size:15px;color:var(--ink);font-weight:600}
+.dropzone .hint{font-size:12px;line-height:1.8;color:var(--muted)}
+.dropzone .hint code{background:rgba(22,36,63,.07);padding:1px 5px;border-radius:3px;font-size:11px}
+
+.thumbs{
+  height:86px;flex-shrink:0;border-top:1px solid var(--line);background:var(--paper-2);
+  display:flex;align-items:center;gap:8px;padding:8px 16px;overflow-x:auto;
+}
+.thumbs::-webkit-scrollbar{height:7px}
+.thumbs::-webkit-scrollbar-thumb{background:#CFC4AE;border-radius:4px}
+.thumb{
+  width:44px;height:56px;border-radius:5px;border:1px solid var(--line);background:var(--white);
+  cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;position:relative;overflow:hidden;
+  transition:all .15s;
+}
+.thumb:hover{border-color:var(--gold-deep);color:var(--ink)}
+.thumb.active{border-color:var(--ink);background:var(--ink);color:var(--gold);font-weight:600}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb.has::after{content:"";position:absolute;right:0;bottom:0;width:0;height:0;border-style:solid;border-width:0 0 10px 10px;border-color:transparent transparent #6FA36F transparent}
+.tinfo{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;padding-left:14px}
+.toast{
+  position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:20px;font-size:12.5px;
+  opacity:0;pointer-events:none;transition:all .25s;z-index:99;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{
+  body{height:auto;overflow:visible;background:#fff}
+  header,.thumbs,.pane-head,.copy{display:none!important}
+  main{display:block}
+  .left,.right{width:100%;display:block;border:none;page-break-after:always}
+  .scroll{overflow:visible;padding:0}
+  .stage{padding:0;height:auto}
+  .stage img{max-height:none;width:100%;box-shadow:none}
+  .promptbox{background:#fff;border:1px solid #ccc}
+  .promptbox pre{color:#222}
+}
+@media (max-width:900px){
+  main{flex-direction:column}
+  .left,.right{width:100%;border-right:none}
+  .left{height:50%}
+  .right{height:50%;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="ttl">分镜对照台</h1>
+  <span class="sub" id="sub"></span>
+  <span class="spacer"></span>
+  <div class="pager">
+    <button id="prev">上一页</button>
+    <span><b id="cur">1</b> / <span id="tot">1</span></span>
+    <button id="next">下一页</button>
+  </div>
+  <button id="pick">批量载入图片</button>
+  <button id="print">打印</button>
+</header>
+
+<main>
+  <section class="pane left">
+    <div class="pane-head"><span class="tag">提示词</span><span id="lp-title">第 1 页</span></div>
+    <div class="scroll" id="left"></div>
+  </section>
+  <section class="pane right">
+    <div class="pane-head"><span class="tag">成图</span><span id="art-hint">拖图片到此处，或点击载入（支持一次拖入多张，按顺序填充）</span></div>
+    <div class="stage" id="stage"></div>
+  </section>
+</main>
+
+<div class="thumbs" id="thumbs"></div>
+<input type="file" id="file" accept="image/*" multiple hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+const BOARD = __BOARD_DATA__;
+const S = { idx: 0, images: {} };
+const $ = (id) => document.getElementById(id);
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function renderLeft(){
+  const p = BOARD.pages[S.idx];
+  $("lp-title").textContent = "第 " + p.no + " 页" + (p.scene ? " · " + p.scene : "");
+  let h = "";
+  if (p.scene || p.costume) {
+    h += '<div class="block"><h3>场景与妆造</h3><div class="kv">';
+    if (p.scene) h += '<div><span class="k">场景</span>' + esc(p.scene) + '</div>';
+    if (p.costume) h += '<div><span class="k">妆造</span>' + esc(p.costume) + '</div>';
+    h += '</div></div>';
+  }
+  if (p.skeleton || p.layout) {
+    h += '<div class="block"><h3>版式</h3><div class="kv">';
+    if (p.skeleton) h += '<div><span class="k">骨架</span>' + esc(p.skeleton) + '</div>';
+    if (p.layout) h += '<div><span class="k">版式</span>' + esc(p.layout) + (p.family ? ' <span style="color:var(--muted)">（' + esc(p.family) + '）</span>' : '') + '</div>';
+    h += '</div></div>';
+  }
+  if (p.modes) h += '<div class="block"><h3>角色模式</h3><div class="kv">' + esc(p.modes) + '</div></div>';
+  if (p.anchor && p.anchor.length) {
+    h += '<div class="block"><h3>一致性锚定</h3><ul class="anchor">' +
+      p.anchor.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div>';
+  }
+  if (p.panels && p.panels.length) {
+    h += '<div class="block"><h3>分格</h3>' + p.panels.map(pn =>
+      '<div class="panelcard"><div class="ph">格' + esc(pn.no) +
+      (pn.pos ? ' · ' + esc(pn.pos) : '') +
+      (pn.shot ? '<span class="shot">' + esc(pn.shot) + '</span>' : '') +
+      '</div><div class="pb">' + esc(pn.desc) + '</div>' +
+      (pn.extra ? '<div class="pe">独有元素：' + esc(pn.extra) + '</div>' : '') +
+      '</div>').join('') + '</div>';
+  }
+  if (p.prompt) {
+    let sub = "";
+    if (p.panelPrompts && p.panelPrompts.length) {
+      sub = '<div class="sub-prompt">' + p.panelPrompts.map((sp, i) =>
+        '<div class="sl">格' + (i + 1) + ' 单格精修</div><pre>' + esc(sp) + '</pre>').join('') + '</div>';
+    }
+    h += '<div class="block"><h3>整页生图提示词</h3><div class="promptbox">' +
+      '<button class="copy" data-copy="' + S.idx + '">复制</button>' +
+      '<pre id="mainprompt">' + esc(p.prompt) + '</pre>' + sub + '</div></div>';
+  }
+  $("left").innerHTML = h;
+  $("left").scrollTop = 0;
+}
+
+function renderStage(){
+  const p = BOARD.pages[S.idx];
+  const src = S.images[p.no] || p.image;
+  const st = $("stage");
+  if (src) {
+    st.innerHTML = '<img src="' + esc(src) + '" alt="第 ' + p.no + ' 页成图" title="双击可换一张">';
+    const im = st.querySelector("img");
+    im.onerror = () => { st.innerHTML = dropHtml(p); bindDrop(); };
+    im.ondblclick = () => $("file").click();
+  } else {
+    st.innerHTML = dropHtml(p);
+    bindDrop();
+  }
+  $("art-hint").textContent = src
+    ? "双击画面可更换这一页 · 拖入图片也可替换"
+    : "拖图片到此处，或点击载入（支持一次拖入多张，按顺序填充）";
+}
+
+function dropHtml(p){
+  return '<div class="dropzone" id="dz"><div class="big">把这一页的成图拖进来</div>' +
+    '<div class="hint">也可以点这里选择文件<br>或把图片保存为 <code>images/p' +
+    String(p.no).padStart(2, "0") + '.png</code> 放在同一个文件夹</div></div>';
+}
+
+function bindDrop(){
+  const dz = $("dz");
+  if (!dz) return;
+  dz.onclick = () => $("file").click();
+  dz.ondragover = e => { e.preventDefault(); dz.classList.add("over"); };
+  dz.ondragleave = () => dz.classList.remove("over");
+  dz.ondrop = e => {
+    e.preventDefault(); dz.classList.remove("over");
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith("image/"));
+    if (files.length) loadFiles(files);
+  };
+}
+
+function loadFiles(files, startIdx){
+  let i = startIdx == null ? S.idx : startIdx;
+  let count = 0;
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = () => {
+      const page = BOARD.pages[i];
+      if (page) { S.images[page.no] = r.result; count++; }
+      i++;
+      if (i >= BOARD.pages.length || count === files.length) {
+        renderAll();
+        toast("已载入 " + count + " 张图片");
+      }
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function renderThumbs(){
+  $("thumbs").innerHTML = BOARD.pages.map((p, i) => {
+    const src = S.images[p.no] || p.image;
+    const has = src ? " has" : "";
+    const inner = src ? '<img src="' + esc(src) + '">' : p.no;
+    return '<div class="thumb' + (i === S.idx ? " active" : "") + has + '" data-i="' + i + '">' + inner + '</div>';
+  }).join('') + '<span class="tinfo">' + BOARD.pages.length + ' 页 · 已有图 ' +
+    BOARD.pages.filter(p => S.images[p.no] || p.image).length + ' / ' + BOARD.pages.length + '</span>';
+  [...document.querySelectorAll(".thumb")].forEach(t => {
+    t.onclick = () => { S.idx = +t.dataset.i; renderAll(); };
+  });
+}
+
+function renderAll(){
+  renderLeft(); renderStage(); renderThumbs();
+  $("cur").textContent = BOARD.pages[S.idx].no;
+  $("prev").disabled = S.idx === 0;
+  $("next").disabled = S.idx === BOARD.pages.length - 1;
+}
+
+let tt;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1900);
+}
+
+$("prev").onclick = () => { if (S.idx > 0) { S.idx--; renderAll(); } };
+$("next").onclick = () => { if (S.idx < BOARD.pages.length - 1) { S.idx++; renderAll(); } };
+$("pick").onclick = () => $("file").click();
+$("file").onchange = e => { if (e.target.files.length) loadFiles([...e.target.files]); e.target.value = ""; };
+$("print").onclick = () => window.print();
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".copy");
+  if (!b) return;
+  const p = BOARD.pages[+b.dataset.copy];
+  const txt = [p.prompt].concat(p.panelPrompts || []).join("\n\n");
+  navigator.clipboard.writeText(txt).then(() => {
+    b.textContent = "已复制"; b.classList.add("done");
+    setTimeout(() => { b.textContent = "复制"; b.classList.remove("done"); }, 1400);
+  }).catch(() => toast("复制失败，请手动选中文本"));
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") $("prev").click();
+  if (e.key === "ArrowRight") $("next").click();
+});
+
+$("ttl").textContent = (BOARD.title || "分镜对照台") + (BOARD.chapter ? " · " + BOARD.chapter : "");
+$("sub").textContent = BOARD.style || "";
+$("tot").textContent = BOARD.pages.length;
+
+BOARD.pages.forEach(p => { p._path = p.image || ""; p.image = ""; });
+
+function probeImages(){
+  BOARD.pages.forEach((p, i) => {
+    if (!p._path) return;
+    const im = new Image();
+    im.onload = () => {
+      S.images[p.no] = p._path;
+      renderThumbs();
+      if (i === S.idx) renderStage();
+    };
+    im.onerror = () => { p._path = ""; };
+    im.src = p._path;
+  });
+}
+
+renderAll();
+probeImages();
+</script>
+</body>
+</html>
